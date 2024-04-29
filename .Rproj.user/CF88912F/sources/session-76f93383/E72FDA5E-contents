@@ -1,0 +1,24 @@
+```{r}
+library(ggplot2)
+library(grid)
+library(jpeg)
+library(tidyverse)
+```
+
+```{r}
+
+# Read the image file
+img <- readJPEG("NutritionFacts.jpg")  # replace with your image file
+dim(img)
+```
+
+```{r}
+# Create a ggplot object with no data
+ggplot() +coord_fixed()+ xlim(0,290) + ylim(0,398) +
+  annotation_custom(rasterGrob(img, width = unit(1, "npc"), height = unit(1, "npc")),
+                    xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf) +
+  theme_void()
+
+
+
+```

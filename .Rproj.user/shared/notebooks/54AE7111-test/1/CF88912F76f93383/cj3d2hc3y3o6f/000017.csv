@@ -1,0 +1,5 @@
+"0","# Create a ggplot object with no data"
+"0","ggplot() +coord_fixed()+ xlim(0,290) + ylim(0,398) +"
+"0","  annotation_custom(rasterGrob(img, width = unit(1, ""npc""), height = unit(1, ""npc"")),"
+"0","                    xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf) +"
+"0","  theme_void()"

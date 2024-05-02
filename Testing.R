@@ -1,201 +1,150 @@
-library(httr)
-library(jsonlite)
+## Example shiny app with bucket list
 
-api_key <- "QAM21lUsGekFQHsi6lktYg==fwz7Orddmt1IZLYu"
-api_url <- 'https://api.calorieninjas.com/v1/nutrition?query='
-query <- '3lb carrots and a chicken sandwich'
-response <- GET(paste0(api_url, URLencode(query)), add_headers('X-Api-Key' = api_key))
+library(shiny)
+library(sortable)
 
-if (status_code(response) == 200) {
-  print(content(response, "text"))
-} else {
-  cat("Error:", status_code(response), content(response, "text"))
-}
-
-
-test.df <- fromJSON(content(response, "text"))
-
-test2 <- test.df$items
-test2
-
-original_string <- "1 Chicken Breast, 1/4 cup Pickle Juice, 1 Egg, 1/4 cup Milk, 1/2 cup Flour, 1 tbs Icing Sugar, 1/2 tsp Paprika, 1/2 tsp Salt, 1/4 tsp Black Pepper, 1/4 tsp Garlic Powder, 1/4 tsp Celery Salt, 1/2 tsp Cayenne Pepper, 1 cup Olive Oil, 1 Sesame Seed Burger Buns, , , , , ,"
-
-# Remove trailing commas using regex
-cleaned_string <- sub(",\\s*$", "", original_string)
-
-# Print cleaned string
-cleaned_string
-
-
-
-removeEndCommas <- function(input_str){
-  input_str <- input_str
-  cleaned_string <- gsub(" ,", "", input_str)
-  lastChar <- substring(cleaned_string, nchar(cleaned_string)-1, nchar(cleaned_string))
-  if (substring(cleaned_string, nchar(cleaned_string), nchar(cleaned_string)) == ",") {
-    # Remove the last character
-    cleaned_string <- substr(cleaned_string, 1, nchar(cleaned_string) - 1)
-  } else {
-    cleaned_string <- cleaned_string
-  }
-  cleaned_string
-  
-}
-
-removeEndCommas(original_string)
-
-
-
-
-getNutritionFacts <- function(input_url, input_api_key, input_query){
-  response <- GET(paste0(input_url, URLencode(input_query)), add_headers('X-Api-Key' = input_api_key))
-  temp.df <- fromJSON(content(response, "text"))
-  temp.df$items
-  
-}
-
-
-x <- getNutritionFacts(api_url, api_key, '3lb carrots and a chicken sandwich')
-recipe_item_code <- "1234"
-
-url <- paste0("https://api.calorieninjas.com/v1/nutrition?query=", recipe_item_code)
-url
-
-
-clean_data <- data.frame(
-  Name = c("John", "Alice", "Bob", "Emily", "David"),
-  Age = c(25, 30, 35, NA, 40),
-  Gender = c("M", "F", "M", "F", "M"),
-  Score = c(80, 85, 90, 75, 95)
+ui <- fluidPage(
+  tags$head(
+    tags$style(HTML(".bucket-list-container {min-height: 350px;}"))
+  ),
+  fluidRow(
+    column(
+      tags$b("Exercise"),
+      width = 12,
+      bucket_list(
+        header = "Drag the items in any desired bucket",
+        group_name = "bucket_list_group",
+        orientation = "horizontal",
+        add_rank_list(
+          text = "Drag from here",
+          labels = list(
+            "one",
+            "two",
+            "three",
+            htmltools::tags$div(
+              htmltools::em("Complex"), " html tag without a name"
+            ),
+            "five" = htmltools::tags$div(
+              htmltools::em("Complex"), " html tag with name: 'five'"
+            )
+          ),
+          input_id = "rank_list_1"
+        ),
+        add_rank_list(
+          text = "to here",
+          labels = NULL,
+          input_id = "rank_list_2"
+        )
+      )
+    )
+  ),
+  fluidRow(
+    column(
+      width = 12,
+      tags$b("Result"),
+      column(
+        width = 12,
+        
+        tags$p("input$rank_list_1"),
+        verbatimTextOutput("results_1"),
+        
+        tags$p("input$rank_list_2"),
+        verbatimTextOutput("results_2"),
+        
+        tags$p("input$bucket_list_group"),
+        verbatimTextOutput("results_3")
+      )
+    )
+  )
 )
 
-# Add a new column with constant value
-clean_data$NewColumn <- "ConstantValue"
-
-# Print the updated data frame
-print(clean_data)
-
-
-
-getNutritionFacts <- function(recipe_item_code, input_api_key, input_query){
-  api_url <- "https://api.calorieninjas.com/v1/nutrition?query="
-  response <- GET(paste0(api_url, URLencode(input_query)), add_headers('X-Api-Key' = input_api_key))
-  temp.df <- fromJSON(content(response, "text"))$items
-  # temp.df$RID <- as.character(recipe_item_code)
-  temp.df  
-}
-
-z <- getNutritionFacts("12", api_key, query)
-View(z)
-removeEnd1 <- function(input_str){
-  input_str <- input_str
-  cleaned_string <- gsub(" , 1", "", input_str)
-  lastChar <- substring(cleaned_string, nchar(cleaned_string)-1, nchar(cleaned_string))
-  if (substring(cleaned_string, nchar(cleaned_string), nchar(cleaned_string)) == "1") {
-    # Remove the last character
-    cleaned_string <- substr(cleaned_string, 1, nchar(cleaned_string) - 1)
-  } else {
-    cleaned_string <- cleaned_string
-  }
-  cleaned_string
+server <- function(input, output, session) {
+  output$results_1 <-
+    renderPrint(
+      input$rank_list_1 # This matches the input_id of the first rank list
+    )
+  output$results_2 <-
+    renderPrint(
+      input$rank_list_2 # This matches the input_id of the second rank list
+    )
+  output$results_3 <-
+    renderPrint(
+      input$bucket_list_group # Matches the group_name of the bucket list
+    )
   
 }
 
-removeEndCommas <- function(input_str){
-  input_str <- input_str
-  cleaned_string <- gsub(" ,", "", input_str)
-  lastChar <- substring(cleaned_string, nchar(cleaned_string)-1, nchar(cleaned_string))
-  if (substring(cleaned_string, nchar(cleaned_string), nchar(cleaned_string)) == "1") {
-    # Remove the last character
-    cleaned_string <- substr(cleaned_string, 1, nchar(cleaned_string) - 1)
-  } else {
-    cleaned_string <- cleaned_string
-  }
-  cleaned_string
-  
-}
+recipe_names <- c("Banana Pancakes -- 52855.6", "BBQ Pork Sloppy Joes -- 52995.7", "Beef Brisket Pot Roast -- 52812.8", "15-minute chicken & halloumi burgers -- 53085.9")
 
-removeEndCommas2 <- function(input_str){
-  input_str <- input_str
-  cleaned_string <- gsub("  ,", "", input_str)
-  lastChar <- substring(cleaned_string, nchar(cleaned_string)-1, nchar(cleaned_string))
-  if (substring(cleaned_string, nchar(cleaned_string), nchar(cleaned_string)) == "1") {
-    # Remove the last character
-    cleaned_string <- substr(cleaned_string, 1, nchar(cleaned_string) - 1)
-  } else {
-    cleaned_string <- cleaned_string
-  }
-  cleaned_string
-  
-}
+# Extract numbers after the dot (.) in each element of the vector
+numbers_after_dot <- gsub(".*\\.(\\d+)$", "\\1", recipe_names)
+numbers_after_dot
+# Convert the extracted numbers to numeric format
+numbers_after_dot_numeric <- as.numeric(numbers_after_dot)
 
-removeEndones <- function(input_str){
-  cleaned_string <- input_str
-  if (substring(cleaned_string, nchar(cleaned_string), nchar(cleaned_string)) == "1") {
-    # Remove the last character
-    cleaned_string <- substr(cleaned_string, 1, nchar(cleaned_string) - 1)
-  } else {
-    cleaned_string <- cleaned_string
-  }
-  cleaned_string
-  
-}
+# Print the result
+print(numbers_after_dot_numeric)
+shinyApp(ui, server)
+library(tidyverse)
+df <- data.frame(
+  ID = c(1, 2, 3, 4, 5),
+  Value = c("A", "B", "C", "D", "E")
+)
 
-removeLastComma <- function (input_str){
-  cleaned_string <- input_str
-  if (substring(cleaned_string, nchar(cleaned_string), nchar(cleaned_string)) == ",") {
-    # Remove the last character
-    cleaned_string <- substr(cleaned_string, 1, nchar(cleaned_string) - 1)
-  } else {
-    cleaned_string <- cleaned_string
-  }
-  cleaned_string
-  
-}
+# Vector of values to filter
+filter_values <- c("B", "D")
+
+# Filtering the dataframe
+filtered_df <- df %>%
+  filter(Value %in% filter_values)
+
+print(filtered_df)
 
 
-process_meal <- function(url){
-  x <-fromJSON(url)
-  
-  x2 <- x$meals
-  
-  df_mask_measure <- grep("^strMeasure", names(x2), value = TRUE)
-  df_mask_ingredient <- grep("^strIngredient", names(x2), value = TRUE)
-  
-  measurements <- tolower(t(x2[df_mask_measure]))
-  ingredients <- t(x2[df_mask_ingredient])
-  print(class(measurements))
-  measurements[measurements == " "] <- 1
-  
-  
-  y <-paste(measurements,ingredients)
-  filtered <- subset(y, y != " ")
-  filtered <- subset(filtered, y != "")
-  filtered <- filtered[!sapply(filtered,is.na)]
-  resultIngredients <- paste(filtered, collapse = ", ")
-  ingredientsCleaned <- gsub("NA", "", resultIngredients)
-  ingredientsCleaned <- gsub("dash", "1", ingredientsCleaned)
-  ingredientsCleaned <- gsub("pinch", "1", ingredientsCleaned)
-  ingredientsCleaned <- gsub("sprinkle", "1", ingredientsCleaned)
-  
-  result_df <- data.frame(
-    id = x2$idMeal,
-    name = x2$strMeal,
-    ingredients = removeLastComma(removeEndCommas2(trimws(removeEndones(trimws(removeEnd1(ingredientsCleaned)))))), #removeLastComma(trimws(removeEndCommas(ingredientsCleaned))),
-    steps = x2$strInstructions
+
+df <- data.frame(
+    name = rep(1, 5),
+    calories = rep(2, 5),
+    serving_size_g = rep(3, 5),
+    fat_total_g = rep(3, 5),
+    fat_saturated_g = rep(4, 5),
+    protein_g = rep(5, 5),
+    sodium_mg = rep(6, 5),
+    potassium_mg = rep(7, 5),
+    cholesterol_mg = rep(8, 5),
+    carbohydrates_total_g = rep(9, 5),
+    fiber_g = rep(20, 5),
+    sugar_g = rep(11, 5),
+    RID = rep(12, 5),
+    ID = c("1","6","2","2","3")
   )
-  result_df
-}
 
+df[df[, 14] %in% gsub(".*\\.(\\d+)$", "\\1",recipe_names), ]
 
-url <- 'https://www.themealdb.com/api/json/v1/1/lookup.php?i=52995'
-url2 <- 'https://www.themealdb.com/api/json/v1/1/lookup.php?i=53085'
-url3 <- 'https://www.themealdb.com/api/json/v1/1/lookup.php?i=52812'
+df[df[, 14] %in% c("1", "3"), ]
 
+data.frame(
+  name = NULL,
+  calories = NULL,
+  serving_size_g = NULL,
+  fat_total_g = NULL,
+  fat_saturated_g = NULL,
+  protein_g = NULL,
+  sodium_mg = NULL,
+  potassium_mg = NULL,
+  cholesterol_mg = NULL,
+  carbohydrates_total_g = NULL,
+  fiber_g = NULL,
+  sugar_g = NULL,
+  RID = NULL,
+  ID = NULL
+)
 
-process_meal(url)
-process_meal(url2)
-process_meal(url3)
+df2 <-data.frame()
+df2$col1 <- NULL
+column_names <- c("col1", "col2", "col3")
 
-
+# Create an empty dataframe with columns but no rows
+empty_df <- data.frame(matrix(ncol = length(column_names), nrow = 0))
+colnames(empty_df) <- column_names
 

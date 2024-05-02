@@ -56,23 +56,15 @@ navbarPage(
            )
            ),
   tabPanel("Daily Nutritional Count", 
-           sidebarPanel(
-             selectInput('weekDaySelect',
+           mainPanel(
+             selectInput('weekDaySelect', 
                          "Select Day of the Week",
-                         choices = c("All" = 'all', "Sunday" = 'sun', "Monday" = 'mon',
+                         choices = c("Sunday" = 'sun', "Monday" = 'mon',
                                      "Tuesday" = 'tue', "Wednesday" = 'wed',
                                      "Thursday" = 'thur', "Friday" = 'fri',
                                      "Saturday" = 'sat'))
-             # actionButton("submitWeekDay",
-                          # "Submit")
-           ),
-           mainPanel(
-             verbatimTextOutput("text"),
-             
-             verbatimTextOutput("reactive_output"),
-             tableOutput("MealNutTable")
            )),
-  tabPanel("Weekly Macro Tracker", verbatimTextOutput("reactive_output")),
-  tabPanel("Future Work", tableOutput("my_table"))
+  tabPanel("Weekly Macro Tracker", tableOutput("my_table1")),
+  tabPanel("Future Work", tableOutput("my_table")),
   
 )

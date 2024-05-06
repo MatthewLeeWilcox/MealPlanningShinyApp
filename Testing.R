@@ -199,3 +199,32 @@ process_meal(url3)
 
 
 
+df <-  data.frame(
+  name = NA,
+  calories = NA
+)
+
+
+df <- data.frame(
+  group_var = c("A", "A", "B", "B"),
+  var1 = c(1, 2, 3, 4),
+  var2 = c(5, 6, 7, 8)
+)
+
+# Group by 'group_var' and get the total sum for every column
+total_sums <- df %>%
+  group_by(group_var) %>%
+  summarise(across(everything(), sum))
+
+print(total_sums)
+
+# Create an empty data frame with column names
+empty_df <- data.frame(
+  var1 = numeric(0),  # Example column with numeric data type and 0 rows
+  var2 = character(0), # Example column with character data type and 0 rows
+  var3 = logical(0)    # Example column with logical data type and 0 rows
+)
+
+# Check the structure of the empty data frame
+str(empty_df)
+

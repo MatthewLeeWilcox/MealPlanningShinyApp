@@ -62,7 +62,8 @@ navbarPage(
                          choices = c("Sunday" = 'sun', "Monday" = 'mon',
                                      "Tuesday" = 'tue', "Wednesday" = 'wed',
                                      "Thursday" = 'thur', "Friday" = 'fri',
-                                     "Saturday" = 'sat'))
+                                     "Saturday" = 'sat')),
+             tableOutput("nutTable")
            )),
   tabPanel("Weekly Macro Tracker", tableOutput("my_table1")),
   tabPanel("Future Work", tableOutput("my_table")),

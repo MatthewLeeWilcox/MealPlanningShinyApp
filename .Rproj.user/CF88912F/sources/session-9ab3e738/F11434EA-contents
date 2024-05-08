@@ -14,9 +14,8 @@ dim(img)
 
 ```{r}
 # Create a ggplot object with no data
-ggplot() +coord_fixed()+ xlim(0,290) + ylim(0,398) +
-  annotation_custom(rasterGrob(img, width = unit(1, "npc"), height = unit(1, "npc")),
-                    xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf) +
+ggplot() + xlim()
+  annotation_raster(img, xmin = 0, xmax = 100, ymin = 0, ymax = 200) +
   theme_void()
 
 

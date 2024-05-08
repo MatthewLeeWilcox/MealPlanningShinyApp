@@ -149,6 +149,7 @@ recipe_df <- reactiveVal({
     id = NULL,
     id2 = NULL,
     name = NULL,
+    servings = NULL,
     ingredients = NULL,
     steps = NULL
   )
@@ -238,12 +239,30 @@ observeEvent(c(input$addRecipies),{
     url <- paste0("https://www.themealdb.com/api/json/v1/1/lookup.php?i=",selectedrecipie)
     meal_df <- process_meal(url)
     meal_df['id2'] <- global_macro_input_counter()
+    meal_df['sevings'] <- input$servingSize
     recipe_df(rbind(recipe_df(),meal_df))
     
     recipe_names <- c(recipe_names, paste0(meal_df[2],"   - ", meal_df[1],".",as.character(global_macro_input_counter())))
     
     ingredientdf <- getNutritionFacts(meal_df[1], "QAM21lUsGekFQHsi6lktYg==fwz7Orddmt1IZLYu", meal_df[3])
     ingredientdf['ID'] <- global_macro_input_counter()
+    ingredientdf[,c("calories",
+                    "fat_total_g",
+                    "fat_saturated_g",
+                    "protein_g",
+                    "sodium_mg",
+                    "potassium_mg",
+                    "carbohydrates_total_g",
+                    "fiber_g", 
+                    "sugar_g")] <- ingredientdf[,c("calories",
+                                                   "fat_total_g",
+                                                   "fat_saturated_g",
+                                                   "protein_g",
+                                                   "sodium_mg",
+                                                   "potassium_mg",
+                                                   "carbohydrates_total_g",
+                                                   "fiber_g", 
+                                                   "sugar_g")]/input$servingSize
     macrosDf(rbind(macrosDf(), ingredientdf))
     ingredientdf <- ingredientdf %>%
       group_by(ID) %>%

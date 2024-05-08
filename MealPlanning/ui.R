@@ -26,6 +26,7 @@ navbarPage(
                           ),
                           mainPanel(
                             selectInput("recipieSelector", "Select Recipies", choices = NULL, multiple = TRUE),
+                            numericInput("servingSize", "Select Serving", 1, min = 1, max = 20),
                             actionButton("addRecipies", "Add")
                           )
                         )
@@ -65,7 +66,70 @@ navbarPage(
                                      "Saturday" = 'sat')),
              tableOutput("nutTable")
            )),
-  tabPanel("Weekly Macro Tracker", tableOutput("my_table1")),
+  tabPanel("Weekly Macro Tracker",
+           sidebarLayout(
+             sidebarPanel(width = 2,
+               selectInput("macroSelector", "Select Macronutrient",choices = c('Calories', "Protein")),
+               checkboxGroupInput("graphType", "Select Graph Type:",choices = c("Bar", "Line")),
+               conditionalPanel(
+                 condition = "input.macroSelector == 'Calories'",
+                 checkboxInput("bmrSelector","Add Basal Metabolic Rate", value = FALSE)
+                 ),
+               conditionalPanel(
+                 condition = "input.bmrSelector == true",
+                 titlePanel("BMR Calculator"),
+                 selectInput("gender", "Gender:", choices = c("Male", "Female")),
+                 sliderInput("age",
+                             "Age:",
+                             value = 25,
+                             min = 1,
+                             max = 99),
+                 selectInput("heightFt", "Height Ft.:", choices = c("3ft", "4ft", "5ft", "6ft", "7ft", "8ft")),
+                 selectInput("heightIn", "Height In.:", choices = c("1in", "2in",
+                                                                    "3in", "4in",
+                                                                    "5in", "6in",
+                                                                    "7in", "8in",
+                                                                    "9in", "10in",
+                                                                    "11in")),
+                 selectInput("activityLevel",
+                             "Activity Level",
+                             choices = c("Sedentary (little or no exercies)" = "sedentary",
+                                         "Lightly Active (light exercise/sports 1-3 days per week" = "light", 
+                                         "Moderately Active (moderative exercise/sports 3-5 days per week" = "moderate",
+                                         "Very Active (hard exercise/sport 6-7 days per week" = "very",
+                                         "Extra Active (very hard exerciese/sports plus a physical job or training twice a day)" = "extra")
+                 ))
+             ),
+             mainPanel()
+           )
+           ),
   tabPanel("Future Work", tableOutput("my_table")),
   
 )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

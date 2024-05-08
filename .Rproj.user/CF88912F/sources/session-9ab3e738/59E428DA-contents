@@ -4,6 +4,7 @@ library(httr)
 library(jsonlite)
 library(shinyWidgets)
 library(tidyverse)
+library(DT)
 
 
 function(input, output, session) {
@@ -185,6 +186,10 @@ saturday_list <- reactiveVal(
 
 getNutritionFacts <- function(recipe_item_code, input_api_key, input_query){
   api_url <- "https://api.calorieninjas.com/v1/nutrition?query="
+  print("###############################")
+  print(input_query)
+  print("###############################")
+  
   response <- GET(paste0(api_url, URLencode(input_query)), add_headers('X-Api-Key' = input_api_key))
   temp.df <- fromJSON(content(response, "text"))$items
   temp.df$RID <- as.character(recipe_item_code)
@@ -418,21 +423,60 @@ output$bucket <- renderUI({
   )
 })  
 
-output$nutTable <- renderTable({
-  df <- Sum.macrosDf()
-  })
+output$nutTable <- renderDT({
+    df <- Sum.macrosDf()
+    df$ID <- as.character(df$ID)
+    print(str(df))
+    print(str(input$rank_list_2))
+    if(input$weekDaySelect == 'sun'){
+      df <- df %>%
+        filter(ID %in% sub(".*\\.(\\d+)$", "\\1",input$rank_list_2))
+    } else if(input$weekDaySelect == 'mon'){
+      df <- df %>%
+        filter(ID %in% sub(".*\\.(\\d+)$", "\\1",input$rank_list_3))
+    }else if(input$weekDaySelect == 'tue'){
+      df <- df %>%
+        filter(ID %in% sub(".*\\.(\\d+)$", "\\1",input$rank_list_4))
+    }else if(input$weekDaySelect == 'wed'){
+      df <- df %>%
+        filter(ID %in% sub(".*\\.(\\d+)$", "\\1",input$rank_list_5))
+    }else if(input$weekDaySelect == 'thur'){
+      df <- df %>%
+        filter(ID %in% sub(".*\\.(\\d+)$", "\\1",input$rank_list_6))
+    }else if(input$weekDaySelect == 'fri'){
+      df <- df %>%
+        filter(ID %in% sub(".*\\.(\\d+)$", "\\1",input$rank_list_7))
+    }else if(input$weekDaySelect == 'sat'){
+      df <- df %>%
+        filter(ID %in% sub(".*\\.(\\d+)$", "\\1",input$rank_list_8))
+    } else if(input$weekDaySelect == 'all'){
+      df <- df %>%
+        filter(ID %in% sub(".*\\.(\\d+)$", "\\1",c(input$rank_list_2,
+                                                   input$rank_list_3,
+                                                   input$rank_list_4,
+                                                   input$rank_list_5,
+                                                   input$rank_list_6,
+                                                   input$rank_list_7,
+                                                   input$rank_list_8
+        )))
+    }
+    df <- df %>% 
+      select("name", "sum_calories","sum_fat", "sum_sat", "sum_proteing", 
+             "sum_sodium", "sum_potassium", "sum_carbohydrates", "sum_fiber",
+             "sum_sugar")
+    colnames(df) <- c("Name", "Calories", "Fat (g)", "Satuated Fat (g)",
+                      "Protein (g)", "Sodium (mg)", "Potassium (mg)",
+                      "Carbohydrates (g)", "Fiber (g)", "Sugar (g)")
+    datatable(df)
+    })
 
 
 ### Test View the Recipe DF
 output$my_table1 <- renderTable({
-  df <- Sum.macrosDf()
-  row.names(df) <-df$name
-  print(df)
-  tdf <- data.frame(t(df))
-  colnames(tdf)<- rownames(df)
+  macrosDf()
 })
 output$my_table <- renderTable({
-  macrosDf()
+  recipe_df()
 })
 ###
 

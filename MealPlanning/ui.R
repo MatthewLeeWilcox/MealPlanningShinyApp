@@ -2,6 +2,7 @@
 library(shiny)
 library(sortable)
 library(shinyWidgets)
+library(DT)
 navbarPage(
   "Meal Planning",   
   tabPanel("Recipe Selection", 
@@ -64,7 +65,7 @@ navbarPage(
                                      "Tuesday" = 'tue', "Wednesday" = 'wed',
                                      "Thursday" = 'thur', "Friday" = 'fri',
                                      "Saturday" = 'sat')),
-             tableOutput("nutTable")
+             DTOutput("nutTable")
            )),
   tabPanel("Weekly Macro Tracker",
            sidebarLayout(
@@ -103,7 +104,8 @@ navbarPage(
              mainPanel()
            )
            ),
-  tabPanel("Future Work", tableOutput("my_table")),
+  tabPanel("Future Work", tableOutput("my_table"),
+           tableOutput(("my_table_1")))
   
 )
 

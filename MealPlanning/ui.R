@@ -3,6 +3,7 @@ library(shiny)
 library(sortable)
 library(shinyWidgets)
 library(DT)
+library(plotly)
 navbarPage(
   "Meal Planning",   
   tabPanel("Recipe Selection", 
@@ -32,16 +33,16 @@ navbarPage(
                           )
                         )
              ),
-             tabPanel("Add Recipie",
+             tabPanel("Add Recipie",fluidPage(
                       textInput("rName", "Recipie Name:"),
                       textInput("rIngredient", "Ingredients List:"),
                       textInput("rSteps", "Steps:"),
                       actionButton("rSubmit", 'Submit')
-                      ),
-             tabPanel("Add Resturant Meal",
+                      )),
+             tabPanel("Add Resturant Meal",fluidPage(
                       textInput("restMealname", "Meal Name:"),
                       textInput("restMealDescription", "Describe Meal:"),
-                      actionButton("rmSubmit", 'Submit')
+                      actionButton("rmSubmit", 'Submit'))
              )
              
              ),
@@ -70,10 +71,15 @@ navbarPage(
   tabPanel("Weekly Macro Tracker",
            sidebarLayout(
              sidebarPanel(width = 2,
-               selectInput("macroSelector", "Select Macronutrient",choices = c('Calories', "Protein")),
-               checkboxGroupInput("graphType", "Select Graph Type:",choices = c("Bar", "Line")),
+               selectInput("macroSelector", "Select Macronutrient",
+                           multiple = TRUE,
+                           choices =c("Calories", "Fat (g)", "Satuated Fat (g)",
+                                                                              "Protein (g)", "Sodium (mg)", "Potassium (mg)",
+                                                                              "Carbohydrates (g)", "Fiber (g)", "Sugar (g)")),
+               checkboxInput("barGraph", "Bar Graph", TRUE),
+               checkboxInput("lineGraph", "Line Graph", FALSE),
                conditionalPanel(
-                 condition = "input.macroSelector == 'Calories'",
+                 condition = "input.macroSelector.includes('Calories')",
                  checkboxInput("bmrSelector","Add Basal Metabolic Rate", value = FALSE)
                  ),
                conditionalPanel(
@@ -85,13 +91,13 @@ navbarPage(
                              value = 25,
                              min = 1,
                              max = 99),
-                 selectInput("heightFt", "Height Ft.:", choices = c("3ft", "4ft", "5ft", "6ft", "7ft", "8ft")),
-                 selectInput("heightIn", "Height In.:", choices = c("1in", "2in",
-                                                                    "3in", "4in",
-                                                                    "5in", "6in",
-                                                                    "7in", "8in",
-                                                                    "9in", "10in",
-                                                                    "11in")),
+                 sliderInput("weight",
+                             "weight:",
+                             value = 165,
+                             min = 1,
+                             max = 500),
+                 sliderInput("heightFt", "Height Ft.:", value = 5, min =3, max = 8),
+                 sliderInput("heightIn", "Height In.:", value = 0, min = 1, max = 11),
                  selectInput("activityLevel",
                              "Activity Level",
                              choices = c("Sedentary (little or no exercies)" = "sedentary",
@@ -101,11 +107,10 @@ navbarPage(
                                          "Extra Active (very hard exerciese/sports plus a physical job or training twice a day)" = "extra")
                  ))
              ),
-             mainPanel()
+             mainPanel(plotlyOutput("MacroDOWPlot"))
            )
            ),
-  tabPanel("Future Work", tableOutput("my_table"),
-           tableOutput(("my_table_1")))
+  tabPanel("Future Work", tableOutput('my_table1'))
   
 )
 

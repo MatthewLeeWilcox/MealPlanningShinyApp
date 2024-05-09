@@ -5,6 +5,7 @@ library(jsonlite)
 library(shinyWidgets)
 library(tidyverse)
 library(DT)
+library(plotly)
 
 
 function(input, output, session) {
@@ -471,10 +472,325 @@ output$nutTable <- renderDT({
     })
 
 
+
+output$MacroDOWTable <- renderTable({
+  df <- Sum.macrosDf() %>%
+    mutate(weekDay = case_when(
+      ID %in% sub(".*\\.(\\d+)$", "\\1",input$rank_list_2) ~ "Sun",
+      ID %in% sub(".*\\.(\\d+)$", "\\1",input$rank_list_3) ~ "Mon",
+      ID %in% sub(".*\\.(\\d+)$", "\\1",input$rank_list_4) ~ "Tue",
+      ID %in% sub(".*\\.(\\d+)$", "\\1",input$rank_list_5) ~ "Wed",
+      ID %in% sub(".*\\.(\\d+)$", "\\1",input$rank_list_6) ~ "Thur",
+      ID %in% sub(".*\\.(\\d+)$", "\\1",input$rank_list_7) ~ "Fri",
+      ID %in% sub(".*\\.(\\d+)$", "\\1",input$rank_list_8) ~ "Sat"
+    ))  %>%
+    group_by(weekDay) %>%
+    summarise(sum_calories = sum(sum_calories),
+              sum_fat = sum(sum_fat),
+              sum_sat = sum(sum_sat),
+              sum_proteing = sum(sum_proteing),
+              sum_sodium = sum(sum_sodium),
+              sum_potassium = sum(sum_potassium),
+              sum_carbohydrates = sum(sum_carbohydrates),
+              sum_fiber = sum(sum_fiber),
+              sum_sugar = sum(sum_sugar))
+  colnames(df) <- c("Day of the Week", "Calories", "Fat (g)", "Satuated Fat (g)",
+                   "Protein (g)", "Sodium (mg)", "Potassium (mg)",
+                   "Carbohydrates (g)", "Fiber (g)", "Sugar (g)")
+  df
+  
+  
+})
+
+bmrReact <- reactiveVal(0)
+
+observeEvent(c(input$bmrSelector,
+               input$gender,
+               input$weight,
+               input$heightFt,
+               input$heightIn,
+               input$age,
+               input$activityLevel),{
+
+                 if(input$gender == "Male"){
+                   bmr <- 66.47 +  (6.24 * as.numeric(input$weight)) + (12.7 *(as.numeric(input$heightFt)*12 +as.numeric(input$heightIn))) - (6.755*as.numeric(input$age))
+                   # bmr <- 6
+                   print(bmr)
+                   
+                   } else {
+                   bmr <- 655.1 +  (4.35 * as.numeric(input$weight)) + (4.7 *(as.numeric(input$heightFt)*12 +as.numeric(input$heightIn))) - (4.7*as.numeric(input$age))
+                 }
+
+                 if(input$activityLevel == 'sedentary' ){
+                   bmr <- bmr *1.2
+                 }
+                 if(input$activityLevel == 'light' ){
+                   bmr <- bmr *1.375
+                 }
+                 if(input$activityLevel == 'moderate' ){
+                   bmr <- bmr *1.55
+                 }
+                 if(input$activityLevel == 'very' ){
+                   bmr <- bmr *1.725
+                 }
+                 if(input$activityLevel == 'extra' ){
+                   bmr <- bmr *1.9
+                 }
+
+                 bmrReact(bmr)
+
+                 print(bmr)
+
+               })
+
+
+
+output$MacroDOWPlot <- renderPlotly({
+    df <- Sum.macrosDf() %>%
+      mutate(weekDay = case_when(
+        ID %in% sub(".*\\.(\\d+)$", "\\1",input$rank_list_2) ~ "Sun",
+        ID %in% sub(".*\\.(\\d+)$", "\\1",input$rank_list_3) ~ "Mon",
+        ID %in% sub(".*\\.(\\d+)$", "\\1",input$rank_list_4) ~ "Tue",
+        ID %in% sub(".*\\.(\\d+)$", "\\1",input$rank_list_5) ~ "Wed",
+        ID %in% sub(".*\\.(\\d+)$", "\\1",input$rank_list_6) ~ "Thur",
+        ID %in% sub(".*\\.(\\d+)$", "\\1",input$rank_list_7) ~ "Fri",
+        ID %in% sub(".*\\.(\\d+)$", "\\1",input$rank_list_8) ~ "Sat"
+      ))
+    # print(df)
+    zeroDF <- data.frame(
+      name = rep(c(" "),7),
+      sum_calories  = rep(0, 7),
+      sum_fat = rep(0, 7),
+      sum_sat = rep(0, 7),
+      sum_proteing   = rep(0, 7),
+      sum_sodium = rep(0, 7),
+      sum_potassium = rep(0, 7),
+      sum_carbohydrates = rep(0, 7),
+      sum_fiber = rep(0, 7),
+      sum_sugar = rep(0, 7),
+      ID = rep(0, 7),  
+      weekDay = rep(c("Mon", "Tue", "Wed", "Thur", "Fri", "Sat", "Sun"), each = 1)
+      
+    )
+    
+    df <- rbind(zeroDF, df)
+    # print(df)
+    df <- df %>%  
+    group_by(weekDay) %>%
+    summarise(sum_calories = sum(sum_calories),
+              sum_fat = sum(sum_fat),
+              sum_sat = sum(sum_sat),
+              sum_proteing = sum(sum_proteing),
+              sum_sodium = sum(sum_sodium),
+              sum_potassium = sum(sum_potassium),
+              sum_carbohydrates = sum(sum_carbohydrates),
+              sum_fiber = sum(sum_fiber),
+              sum_sugar = sum(sum_sugar))
+    print(df)
+  colnames(df) <- c("weekDay", "Calories", "Fat (g)", "Satuated Fat (g)",
+                    "Protein (g)", "Sodium (mg)", "Potassium (mg)",
+                    "Carbohydrates (g)", "Fiber (g)", "Sugar (g)")
+  print(df)
+  df$weekDay <- factor(df$weekDay, levels = c("Sun", "Mon", "Tue", "Wed", "Thur", "Fri", "Sat"))
+  df <- df[order(df$weekDay), ]
+  macroplot <- plot_ly(data =df, x =~weekDay, y = ~ 0)
+
+  if ("Calories" %in% input$macroSelector && input$barGraph == TRUE){
+    macroplot <- macroplot %>% add_trace(data = df,
+                         x = ~weekDay,
+                         y = ~Calories,
+                         type = 'bar',
+                         name = "Calories")
+  }
+  if ("Fat (g)" %in% input$macroSelector && input$barGraph == TRUE) {
+    macroplot <- macroplot %>% add_trace(data = df,
+                                         x = ~weekDay,
+                                         y = ~`Fat (g)`,
+                                         type = 'bar',
+                                         name = "Fat (g)" )
+  }
+  if ("Satuated Fat (g)" %in% input$macroSelector && input$barGraph == TRUE) {
+    macroplot <- macroplot %>% add_trace(data = df,
+                                         x = ~weekDay,
+                                         y = ~`Satuated Fat (g)`,
+                                         type = 'bar',
+                                         name = 'Saturated Fat (g)')
+  }
+  if ("Protein (g)" %in% input$macroSelector && input$barGraph == TRUE) {
+    macroplot <- macroplot %>% add_trace(data = df,
+                                         x = ~weekDay,
+                                         y = ~`Protein (g)`,
+                                         type = 'bar',
+                                         name = "Protein (g)")
+  }
+  if ("Sodium (mg)" %in% input$macroSelector && input$barGraph == TRUE) {
+    macroplot <- macroplot %>% add_trace(data = df,
+                                         x = ~weekDay,
+                                         y = ~`Sodium (mg)`,
+                                         type = 'bar',
+                                         name = "Sodium (mg)")
+
+  }
+  if ("Potassium (mg)" %in% input$macroSelector && input$barGraph == TRUE) {
+    macroplot <- macroplot %>% add_trace(data = df,
+                                         x = ~weekDay,
+                                         y = ~`Potassium (mg)`,
+                                         type = 'bar',
+                                         name = "Potassium (mg)")
+
+  }
+  if ("Carbohydrates (g)" %in% input$macroSelector && input$barGraph == TRUE) {
+    macroplot <- macroplot %>% add_trace(data = df,
+                                         x = ~weekDay,
+                                         y = ~`Carbohydrates (g)`,
+                                         type = 'bar',
+                                         name = "Carbohydrates (g)")
+
+  }
+  if ("Fiber (g)" %in% input$macroSelector && input$barGraph == TRUE) {
+    macroplot <- macroplot %>% add_trace(data = df,
+                                         x = ~weekDay,
+                                         y = ~`Fiber (g)`,
+                                         type = 'bar',
+                                         name = 'Fiber (g)')
+
+  }
+  if ("Sugar (g)" %in% input$macroSelector && input$barGraph == TRUE) {
+    macroplot <- macroplot %>% add_trace(data = df,
+                                         x = ~weekDay,
+                                         y = ~`Sugar (g)`,
+                                         type = 'bar',
+                                         name = 'Sugar (g)')
+
+  }
+  if ("Calories" %in% input$macroSelector && input$lineGraph == TRUE){
+    macroplot <- macroplot %>% add_trace(data = df,
+                                         x = ~weekDay,
+                                         y = ~Calories,
+                                         type = 'scatter',
+                                         mode = 'lines+markers',
+                                         name = "Calories")
+  }
+  if ("Fat (g)" %in% input$macroSelector && input$lineGraph == TRUE) {
+    macroplot <- macroplot %>% add_trace(data = df,
+                                         x = ~weekDay,
+                                         y = ~`Fat (g)`,
+                                         type = 'scatter',
+                                         mode = 'lines+markers',
+                                         name = "Fat (g)" )
+  }
+  if ("Satuated Fat (g)" %in% input$macroSelector && input$lineGraph == TRUE) {
+    macroplot <- macroplot %>% add_trace(data = df,
+                                         x = ~weekDay,
+                                         y = ~`Satuated Fat (g)`,
+                                         type = 'scatter',
+                                         mode = 'lines+markers',
+                                         name = 'Saturated Fat (g)')
+  }
+  if ("Protein (g)" %in% input$macroSelector && input$lineGraph == TRUE) {
+    macroplot <- macroplot %>% add_trace(data = df,
+                                         x = ~weekDay,
+                                         y = ~`Protein (g)`,
+                                         type = 'scatter',
+                                         mode = 'lines+markers',
+                                         name = "Protein (g)")
+  }
+  if ("Sodium (mg)" %in% input$macroSelector && input$lineGraph == TRUE) {
+    macroplot <- macroplot %>% add_trace(data = df,
+                                         x = ~weekDay,
+                                         y = ~`Sodium (mg)`,
+                                         type = 'scatter',
+                                         mode = 'lines+markers',
+                                         name = "Sodium (mg)")
+
+  }
+  if ("Potassium (mg)" %in% input$macroSelector && input$lineGraph == TRUE) {
+    macroplot <- macroplot %>% add_trace(data = df,
+                                         x = ~weekDay,
+                                         y = ~`Potassium (mg)`,
+                                         type = 'scatter',
+                                         mode = 'lines+markers',
+                                         name = "Potassium (mg)")
+
+  }
+  if ("Carbohydrates (g)" %in% input$macroSelector && input$lineGraph == TRUE) {
+    macroplot <- macroplot %>% add_trace(data = df,
+                                         x = ~weekDay,
+                                         y = ~`Carbohydrates (g)`,
+                                         type = 'scatter',
+                                         mode = 'lines+markers',
+                                         name = "Carbohydrates (g)")
+
+  }
+  if ("Fiber (g)" %in% input$macroSelector && input$lineGraph == TRUE) {
+    macroplot <- macroplot %>% add_trace(data = df,
+                                         x = ~weekDay,
+                                         y = ~`Fiber (g)`,
+                                         type = 'scatter',
+                                         mode = 'lines+markers',
+                                         name = 'Fiber (g)')
+
+  }
+  if ("Sugar (g)"%in% input$macroSelector && input$lineGraph == TRUE) {
+    macroplot <- macroplot %>% add_trace(data = df,
+                                         x = ~weekDay,
+                                         y = ~`Sugar (g)`,
+                                         type = 'scatter',
+                                         mode = 'lines+markers',
+                                         name = 'Sugar (g)')
+  }
+  
+  if (input$bmrSelector == TRUE){
+    macroplot <- macroplot %>%
+      add_trace(data = df,
+                x = df$weekDay,
+                y = bmrReact(),
+                type = "scatter",
+                mode = "lines",
+                name = "Your BMR")
+  }
+
+  # 
+  # 
+  # 
+  macroplot %>%
+    layout(xaxis = list(title = "Day of Week"),
+           yaxis = list(title = ""))
+})
+
 ### Test View the Recipe DF
 output$my_table1 <- renderTable({
-  macrosDf()
-})
+  df <- Sum.macrosDf() %>%
+    mutate(weekDay = case_when(
+      ID %in% sub(".*\\.(\\d+)$", "\\1",input$rank_list_2) ~ "Sun",
+      ID %in% sub(".*\\.(\\d+)$", "\\1",input$rank_list_3) ~ "Mon",
+      ID %in% sub(".*\\.(\\d+)$", "\\1",input$rank_list_4) ~ "Tue",
+      ID %in% sub(".*\\.(\\d+)$", "\\1",input$rank_list_5) ~ "Wed",
+      ID %in% sub(".*\\.(\\d+)$", "\\1",input$rank_list_6) ~ "Thur",
+      ID %in% sub(".*\\.(\\d+)$", "\\1",input$rank_list_7) ~ "Fri",
+      ID %in% sub(".*\\.(\\d+)$", "\\1",input$rank_list_8) ~ "Sat"
+    ))
+  print(df)
+  zeroDF <- data.frame(
+    name = rep(c(" "),7),
+    sum_calories  = rep(0, 7),
+    sum_fat = rep(0, 7),
+    sum_sat = rep(0, 7),
+    sum_proteing   = rep(0, 7),
+    sum_sodium = rep(0, 7),
+    sum_potassium = rep(0, 7),
+    sum_carbohydrates = rep(0, 7),
+    sum_fiber = rep(0, 7),
+    sum_sugar = rep(0, 7),
+    ID = rep(0, 7),  
+    weekDay = rep(c("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"), each = 1)
+    
+  )
+  
+  df <- rbind(zeroDF, df)
+  print(df)  
+  
+  })
 output$my_table <- renderTable({
   recipe_df()
 })
@@ -489,6 +805,38 @@ observeEvent(c(input$clearInput), {
     ingredients = NULL,
     steps = NULL
   ))
+  macrosDf(
+    data.frame(
+      name = character(0),
+      calories = numeric(0),
+      serving_size_g = numeric(0),
+      fat_total_g = numeric(0),
+      fat_saturated_g = numeric(0),
+      protein_g = numeric(0),
+      sodium_mg = numeric(0),
+      potassium_mg = numeric(0),
+      cholesterol_mg = numeric(0),
+      carbohydrates_total_g = numeric(0),
+      fiber_g = numeric(0),
+      sugar_g = numeric(0),
+      RID = character(0),
+      ID = character(0)
+    )
+  )
+  Sum.macrosDf(data.frame(
+      name = character(0),
+      sum_calories = numeric(0),
+      sum_fat = numeric(0),
+      sum_sat = numeric(0),
+      sum_proteing = numeric(0),
+      sum_sodium = numeric(0),
+      sum_potassium =numeric(0) ,
+      sum_carbohydrates = numeric(0),
+      sum_fiber = numeric(0),
+      sum_sugar = numeric(0),
+      ID = character(0)
+    )
+  )
 })
 
 

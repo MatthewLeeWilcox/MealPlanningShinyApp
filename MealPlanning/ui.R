@@ -4,8 +4,12 @@ library(sortable)
 library(shinyWidgets)
 library(DT)
 library(plotly)
+library(tools)
+library(shinythemes)
+
 navbarPage(
   "Meal Planning",   
+  theme = shinytheme("sandstone"),
   tabPanel("Recipe Selection", 
            fluidRow(
              tabsetPanel(
@@ -14,17 +18,17 @@ navbarPage(
                           sidebarPanel(
                             selectInput("recipieSearchCat",
                                         "Search Recipies by:",
-                                        c("Cuisine", "Ingredients", "Random")),
+                                        c("Cuisine", "Ingredients")),
                             conditionalPanel(
                               condition = "input.recipieSearchCat == 'Cuisine'",
                               selectInput("cuisineSelector", "Cusine:", choices = NULL)),
                             conditionalPanel(
                               condition = "input.recipieSearchCat == 'Ingredients'",
-                              selectInput("IngredientsSelector", "Ingredients:", choices = NULL)),
-                            conditionalPanel(
-                              condition = "input.recipieSearchCat == 'Random'",
-                              actionButton("randomSelector", "Random Recipies")
-                            )
+                              selectInput("IngredientsSelector", "Ingredients:", choices = NULL))
+                            # conditionalPanel(
+                            #   condition = "input.recipieSearchCat == 'Random'",
+                            #   actionButton("randomSelector", "Random Recipies")
+                            # )
                           ),
                           mainPanel(
                             selectInput("recipieSelector", "Select Recipies", choices = NULL, multiple = TRUE),
@@ -34,19 +38,23 @@ navbarPage(
                         )
              ),
              tabPanel("Add Recipie",fluidPage(
-                      textInput("rName", "Recipie Name:"),
-                      textInput("rIngredient", "Ingredients List:"),
-                      textInput("rSteps", "Steps:"),
-                      actionButton("rSubmit", 'Submit')
+               imageOutput("ComingSoon1")
+                      # textInput("rName", "Recipie Name:"),
+                      # textInput("rIngredient", "Ingredients List:"),
+                      # textInput("rSteps", "Steps:"),
+                      # numericInput("rservingSize", "Select Serving", 1, min = 1, max = 20),
+                      # actionButton("rSubmit", 'Submit')
                       )),
              tabPanel("Add Resturant Meal",fluidPage(
-                      textInput("restMealname", "Meal Name:"),
-                      textInput("restMealDescription", "Describe Meal:"),
-                      actionButton("rmSubmit", 'Submit'))
+               imageOutput("ComingSoon2")
+                      # textInput("restMealname", "Meal Name:"),
+                      # textInput("restMealDescription", "Describe Meal:"),
+                      # actionButton("rmSubmit", 'Submit'))
+              
              )
              
-             ),
-           ),
+             )
+           )),
            fluidRow(
              mainPanel(
                uiOutput("bucket")
@@ -74,8 +82,9 @@ navbarPage(
                selectInput("macroSelector", "Select Macronutrient",
                            multiple = TRUE,
                            choices =c("Calories", "Fat (g)", "Satuated Fat (g)",
-                                                                              "Protein (g)", "Sodium (mg)", "Potassium (mg)",
-                                                                              "Carbohydrates (g)", "Fiber (g)", "Sugar (g)")),
+                                      "Protein (g)", "Sodium (mg)", "Potassium (mg)",
+                                      "Carbohydrates (g)", "Fiber (g)", "Sugar (g)"),
+                           selected = "Calories"),
                checkboxInput("barGraph", "Bar Graph", TRUE),
                checkboxInput("lineGraph", "Line Graph", FALSE),
                conditionalPanel(
@@ -97,7 +106,7 @@ navbarPage(
                              min = 1,
                              max = 500),
                  sliderInput("heightFt", "Height Ft.:", value = 5, min =3, max = 8),
-                 sliderInput("heightIn", "Height In.:", value = 0, min = 1, max = 11),
+                 sliderInput("heightIn", "Height In.:", value = 0, min = 0, max = 11),
                  selectInput("activityLevel",
                              "Activity Level",
                              choices = c("Sedentary (little or no exercies)" = "sedentary",
@@ -105,38 +114,40 @@ navbarPage(
                                          "Moderately Active (moderative exercise/sports 3-5 days per week" = "moderate",
                                          "Very Active (hard exercise/sport 6-7 days per week" = "very",
                                          "Extra Active (very hard exerciese/sports plus a physical job or training twice a day)" = "extra")
-                 ))
+                 ),
+                 uiOutput("BMRexplanation"))
              ),
-             mainPanel(plotlyOutput("MacroDOWPlot"))
+             mainPanel(titlePanel("Weekly Macro Nutrient Tracker"),
+                       plotlyOutput("MacroDOWPlot", height = "1200px"))
            )
            ),
-  tabPanel("Future Work", tableOutput('my_table1'))
-  
+  tabPanel("Recipes",
+           sidebarLayout(
+             sidebarPanel(width = 2,
+                          selectInput("rstepDOW", "Select day of the week:",
+                                      choices = c("Sunday" = 'Sun', "Monday" = 'Mon',
+                                                  "Tuesday" = 'Tue', "Wednesday" = 'Wed',
+                                                  "Thursday" = 'Thur', "Friday" = 'Fri',
+                                                  "Saturday" = 'Sat')),
+                          uiOutput("recipeSelectUI")
+                ),
+             mainPanel(
+               fluidRow(
+                 column(width = 6,
+                   uiOutput("Recipieout"),
+                   uiOutput("RecipeStep")
+                   
+                 ),
+                 column(width = 6,
+                        selectInput("macroSelector2", "Select Macronutrient:",choices =c("Calories", "Fat (g)", "Satuated Fat (g)",
+                                                                                         "Protein (g)", "Sodium (mg)", "Potassium (mg)",
+                                                                                         "Carbohydrates (g)", "Fiber (g)", "Sugar (g)"),
+                                    selected = "Calories"),
+                   plotlyOutput("piePlot"),
+                   DTOutput("macroDT")
+                 )
+               )
+           )))
+  # tabPanel("Test", tableOutput("my_tab")
+  #          )
 )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

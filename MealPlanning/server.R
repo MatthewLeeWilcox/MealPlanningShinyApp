@@ -6,6 +6,7 @@ library(shinyWidgets)
 library(tidyverse)
 library(DT)
 library(plotly)
+library(tools)
 
 
 function(input, output, session) {
@@ -130,9 +131,12 @@ function(input, output, session) {
     filtered <- filtered[!sapply(filtered,is.na)]
     resultIngredients <- paste(filtered, collapse = ", ")
     ingredientsCleaned <- gsub("NA", "", resultIngredients)
-    ingredientsCleaned <- gsub("dash", "1", ingredientsCleaned)
-    ingredientsCleaned <- gsub("pinch", "1", ingredientsCleaned)
-    ingredientsCleaned <- gsub("sprinkle", "1", ingredientsCleaned)
+    ingredientsCleaned <- gsub("dash", "1g", ingredientsCleaned)
+    ingredientsCleaned <- gsub("pinch", "1g", ingredientsCleaned)
+    ingredientsCleaned <- gsub("sprinkle", "1g", ingredientsCleaned)
+    ingredientsCleaned <- gsub("1/2 tsp", "1g", ingredientsCleaned)
+    ingredientsCleaned <- gsub("1/4 tsp", "1g", ingredientsCleaned)
+    ingredientsCleaned <- gsub("1/8 tsp", "1g", ingredientsCleaned)
     
     result_df <- data.frame(
       id = x2$idMeal,
@@ -149,11 +153,11 @@ function(input, output, session) {
 recipe_df <- reactiveVal({
   data.frame(
     id = NULL,
-    id2 = NULL,
-    name = NULL,
-    servings = NULL,
+    id2 =  NULL,
+    name =  NULL,
+    servings =  NULL,
     ingredients = NULL,
-    steps = NULL
+    steps =  NULL
   )
 })
 
@@ -247,7 +251,8 @@ observeEvent(c(input$addRecipies),{
     meal_df['id2'] <- global_macro_input_counter()
     meal_df['sevings'] <- input$servingSize
     recipe_df(rbind(recipe_df(),meal_df))
-    
+    print(meal_df[2])
+    print(meal_df[1])
     recipe_names <- c(recipe_names, paste0(meal_df[2],"   - ", meal_df[1],".",as.character(global_macro_input_counter())))
     
     ingredientdf <- getNutritionFacts(meal_df[1], "QAM21lUsGekFQHsi6lktYg==fwz7Orddmt1IZLYu", meal_df[3])
@@ -306,34 +311,90 @@ observeEvent(c(input$addRecipies),{
 ################################################################################
 # Add Our Own Recipe
 ################################################################################
-global_recipie_coutner <-reactiveVal(1)
+output$ComingSoon1 <- renderImage({
+  # Return a list containing the filename
+  list(src = "images/27282.jpg",  # Path to your image file
+       contentType = 'image/jpeg',
+       width = 400,
+       height = 300,
+       alt = "Alternate text for the image")
+}, deleteFile = FALSE)
 
-observeEvent(c(input$rSubmit),{
-  custom_id <-paste0("CR", global_recipie_coutner(), ".",global_macro_input_counter())
-  custom_recipe <- data.frame(
-    id = custom_id,
-    name = input$rName,
-    ingredients = input$rIngredient,
-    steps = input$rSteps
-  )
-  global_recipie_coutner(global_recipie_coutner()+1)
-  global_macro_input_counter(global_macro_input_counter()+1)
-  recipe_df(rbind(recipe_df(),custom_recipe))
-  
-  
-
-  
-  # Clear Fields
-  updateTextInput(session,
-                  'rName',
-                  value = '')
-  updateTextInput(session,
-                  'rIngredient',
-                  value = '')
-  updateTextInput(session,
-                  'rSteps',
-                  value = '')
-})
+output$ComingSoon2 <- renderImage({
+  # Return a list containing the filename
+  list(src = "images/27282.jpg",  # Path to your image file
+       contentType = 'image/jpeg',
+       width = 400,
+       height = 300,
+       alt = "Alternate text for the image")
+}, deleteFile = FALSE)
+# global_recipie_coutner <-reactiveVal(1)
+# 
+# observeEvent(c(input$rSubmit),{
+#   recipe_names <- c(input$rank_list_1)
+#   
+#   custom_id <-paste0(global_recipie_coutner(), ".",global_macro_input_counter())
+#   custom_recipe <- data.frame(
+#     id = global_recipie_coutner(),
+#     name = input$rName,
+#     ingredients = input$rIngredient,
+#     steps = input$rSteps,
+#     id2 = global_macro_input_counter(),
+#     sevings = input$rservingSize
+# 
+#   )
+#   recipe_df(rbind(recipe_df(),custom_recipe))
+#   recipe_names <- c(recipe_names, paste0(input$rname,"   - ", as.character(global_recipie_coutner()),".",as.character(global_macro_input_counter())))
+# 
+#   ingredientdf <- getNutritionFacts(global_recipie_coutner(), "QAM21lUsGekFQHsi6lktYg==fwz7Orddmt1IZLYu", global_macro_input_counter)
+#   ingredientdf['ID'] <- global_macro_input_counter()
+#   ingredientdf[,c("calories",
+#                   "fat_total_g",
+#                   "fat_saturated_g",
+#                   "protein_g",
+#                   "sodium_mg",
+#                   "potassium_mg",
+#                   "carbohydrates_total_g",
+#                   "fiber_g",
+#                   "sugar_g")] <- ingredientdf[,c("calories",
+#                                                  "fat_total_g",
+#                                                  "fat_saturated_g",
+#                                                  "protein_g",
+#                                                  "sodium_mg",
+#                                                  "potassium_mg",
+#                                                  "carbohydrates_total_g",
+#                                                  "fiber_g",
+#                                                  "sugar_g")]/input$servingSize
+#   macrosDf(rbind(macrosDf(), ingredientdf))
+#   ingredientdf <- ingredientdf %>%
+#     group_by(ID) %>%
+#     summarise(sum_calories = sum(calories),
+#               sum_fat = sum(fat_total_g),
+#               sum_sat = sum(fat_saturated_g),
+#               sum_proteing = sum(protein_g),
+#               sum_sodium = sum(sodium_mg),
+#               sum_potassium = sum(potassium_mg),
+#               sum_carbohydrates = sum(carbohydrates_total_g),
+#               sum_fiber = sum(fiber_g),
+#               sum_sugar = sum(sugar_g))
+#   ingredientdf['name']<- meal_df[2]
+#   Sum.macrosDf(rbind(Sum.macrosDf(), ingredientdf))
+#   global_macro_input_counter(global_macro_input_counter()+1)
+#   global_recipie_coutner(global_recipie_coutner()+1)
+# #
+# 
+# 
+#   # Clear Fields
+#   updateTextInput(session,
+#                   'rName',
+#                   value = '')
+#   updateTextInput(session,
+#                   'rIngredient',
+#                   value = '')
+#   updateTextInput(session,
+#                   'rSteps',
+#                   value = '')
+# })
 
 ################################################################################
 # Add Resturant meal //// COMING SOON!!!!1
@@ -543,7 +604,9 @@ observeEvent(c(input$bmrSelector,
 
                })
 
-
+output$BMRexplanation <- renderUI({
+  HTML("<p>BMR, or Basal metabolic rate, is the rate of energy you expend at rest. It can also be manipulated with the amount of physical activity to approximate the overall caloric expenditure of someone. To maintain your weight, you should aim to match your caloric intake with your BMR. if you are trying to lose weight, you should eat less than your BMR, and to gain weight eat more than. However, it has also been shown that a BMR calculator such as this one frequently can differ from one’s true BMR by 10%.</p>")
+})
 
 output$MacroDOWPlot <- renderPlotly({
     df <- Sum.macrosDf() %>%
@@ -593,155 +656,28 @@ output$MacroDOWPlot <- renderPlotly({
   print(df)
   df$weekDay <- factor(df$weekDay, levels = c("Sun", "Mon", "Tue", "Wed", "Thur", "Fri", "Sat"))
   df <- df[order(df$weekDay), ]
-  macroplot <- plot_ly(data =df, x =~weekDay, y = ~ 0)
-
+  
+ # Calories Plot
+   caloriesPlot <- plot_ly() 
+  
+  
   if ("Calories" %in% input$macroSelector && input$barGraph == TRUE){
-    macroplot <- macroplot %>% add_trace(data = df,
-                         x = ~weekDay,
-                         y = ~Calories,
-                         type = 'bar',
-                         name = "Calories")
-  }
-  if ("Fat (g)" %in% input$macroSelector && input$barGraph == TRUE) {
-    macroplot <- macroplot %>% add_trace(data = df,
+    caloriesPlot <- caloriesPlot %>% add_trace(data = df,
                                          x = ~weekDay,
-                                         y = ~`Fat (g)`,
+                                         y = ~Calories,
                                          type = 'bar',
-                                         name = "Fat (g)" )
-  }
-  if ("Satuated Fat (g)" %in% input$macroSelector && input$barGraph == TRUE) {
-    macroplot <- macroplot %>% add_trace(data = df,
-                                         x = ~weekDay,
-                                         y = ~`Satuated Fat (g)`,
-                                         type = 'bar',
-                                         name = 'Saturated Fat (g)')
-  }
-  if ("Protein (g)" %in% input$macroSelector && input$barGraph == TRUE) {
-    macroplot <- macroplot %>% add_trace(data = df,
-                                         x = ~weekDay,
-                                         y = ~`Protein (g)`,
-                                         type = 'bar',
-                                         name = "Protein (g)")
-  }
-  if ("Sodium (mg)" %in% input$macroSelector && input$barGraph == TRUE) {
-    macroplot <- macroplot %>% add_trace(data = df,
-                                         x = ~weekDay,
-                                         y = ~`Sodium (mg)`,
-                                         type = 'bar',
-                                         name = "Sodium (mg)")
-
-  }
-  if ("Potassium (mg)" %in% input$macroSelector && input$barGraph == TRUE) {
-    macroplot <- macroplot %>% add_trace(data = df,
-                                         x = ~weekDay,
-                                         y = ~`Potassium (mg)`,
-                                         type = 'bar',
-                                         name = "Potassium (mg)")
-
-  }
-  if ("Carbohydrates (g)" %in% input$macroSelector && input$barGraph == TRUE) {
-    macroplot <- macroplot %>% add_trace(data = df,
-                                         x = ~weekDay,
-                                         y = ~`Carbohydrates (g)`,
-                                         type = 'bar',
-                                         name = "Carbohydrates (g)")
-
-  }
-  if ("Fiber (g)" %in% input$macroSelector && input$barGraph == TRUE) {
-    macroplot <- macroplot %>% add_trace(data = df,
-                                         x = ~weekDay,
-                                         y = ~`Fiber (g)`,
-                                         type = 'bar',
-                                         name = 'Fiber (g)')
-
-  }
-  if ("Sugar (g)" %in% input$macroSelector && input$barGraph == TRUE) {
-    macroplot <- macroplot %>% add_trace(data = df,
-                                         x = ~weekDay,
-                                         y = ~`Sugar (g)`,
-                                         type = 'bar',
-                                         name = 'Sugar (g)')
-
+                                         name = "Calories")
   }
   if ("Calories" %in% input$macroSelector && input$lineGraph == TRUE){
-    macroplot <- macroplot %>% add_trace(data = df,
+    caloriesPlot <- caloriesPlot %>% add_trace(data = df,
                                          x = ~weekDay,
                                          y = ~Calories,
                                          type = 'scatter',
                                          mode = 'lines+markers',
                                          name = "Calories")
   }
-  if ("Fat (g)" %in% input$macroSelector && input$lineGraph == TRUE) {
-    macroplot <- macroplot %>% add_trace(data = df,
-                                         x = ~weekDay,
-                                         y = ~`Fat (g)`,
-                                         type = 'scatter',
-                                         mode = 'lines+markers',
-                                         name = "Fat (g)" )
-  }
-  if ("Satuated Fat (g)" %in% input$macroSelector && input$lineGraph == TRUE) {
-    macroplot <- macroplot %>% add_trace(data = df,
-                                         x = ~weekDay,
-                                         y = ~`Satuated Fat (g)`,
-                                         type = 'scatter',
-                                         mode = 'lines+markers',
-                                         name = 'Saturated Fat (g)')
-  }
-  if ("Protein (g)" %in% input$macroSelector && input$lineGraph == TRUE) {
-    macroplot <- macroplot %>% add_trace(data = df,
-                                         x = ~weekDay,
-                                         y = ~`Protein (g)`,
-                                         type = 'scatter',
-                                         mode = 'lines+markers',
-                                         name = "Protein (g)")
-  }
-  if ("Sodium (mg)" %in% input$macroSelector && input$lineGraph == TRUE) {
-    macroplot <- macroplot %>% add_trace(data = df,
-                                         x = ~weekDay,
-                                         y = ~`Sodium (mg)`,
-                                         type = 'scatter',
-                                         mode = 'lines+markers',
-                                         name = "Sodium (mg)")
-
-  }
-  if ("Potassium (mg)" %in% input$macroSelector && input$lineGraph == TRUE) {
-    macroplot <- macroplot %>% add_trace(data = df,
-                                         x = ~weekDay,
-                                         y = ~`Potassium (mg)`,
-                                         type = 'scatter',
-                                         mode = 'lines+markers',
-                                         name = "Potassium (mg)")
-
-  }
-  if ("Carbohydrates (g)" %in% input$macroSelector && input$lineGraph == TRUE) {
-    macroplot <- macroplot %>% add_trace(data = df,
-                                         x = ~weekDay,
-                                         y = ~`Carbohydrates (g)`,
-                                         type = 'scatter',
-                                         mode = 'lines+markers',
-                                         name = "Carbohydrates (g)")
-
-  }
-  if ("Fiber (g)" %in% input$macroSelector && input$lineGraph == TRUE) {
-    macroplot <- macroplot %>% add_trace(data = df,
-                                         x = ~weekDay,
-                                         y = ~`Fiber (g)`,
-                                         type = 'scatter',
-                                         mode = 'lines+markers',
-                                         name = 'Fiber (g)')
-
-  }
-  if ("Sugar (g)"%in% input$macroSelector && input$lineGraph == TRUE) {
-    macroplot <- macroplot %>% add_trace(data = df,
-                                         x = ~weekDay,
-                                         y = ~`Sugar (g)`,
-                                         type = 'scatter',
-                                         mode = 'lines+markers',
-                                         name = 'Sugar (g)')
-  }
-  
   if (input$bmrSelector == TRUE){
-    macroplot <- macroplot %>%
+    caloriesPlot <- caloriesPlot %>%
       add_trace(data = df,
                 x = df$weekDay,
                 y = bmrReact(),
@@ -750,51 +686,593 @@ output$MacroDOWPlot <- renderPlotly({
                 name = "Your BMR")
   }
 
-  # 
-  # 
-  # 
-  macroplot %>%
-    layout(xaxis = list(title = "Day of Week"),
-           yaxis = list(title = ""))
+  
+  
+  # Fat Plot
+    fatPlot <- plot_ly()
+    
+  
+  
+  if ("Fat (g)" %in% input$macroSelector && input$barGraph == TRUE) {
+    fatPlot <- fatPlot %>% add_trace(data = df,
+                                         x = ~weekDay,
+                                         y = ~`Fat (g)`,
+                                         type = 'bar',
+                                         name = "Fat (g)" )
+  }
+  if ("Fat (g)" %in% input$macroSelector && input$lineGraph == TRUE) {
+    fatPlot <- fatPlot %>% add_trace(data = df,
+                                         x = ~weekDay,
+                                         y = ~`Fat (g)`,
+                                         type = 'scatter',
+                                         mode = 'lines+markers',
+                                         name = "Fat (g)" )
+  }
+  
+  # Sat Fat
+    satfatPlot <- plot_ly()
+  
+  if ("Satuated Fat (g)" %in% input$macroSelector && input$barGraph == TRUE) {
+    satfatPlot <- satfatPlot %>% add_trace(data = df,
+                                         x = ~weekDay,
+                                         y = ~`Satuated Fat (g)`,
+                                         type = 'bar',
+                                         name = 'Saturated Fat (g)')
+  }
+  if ("Satuated Fat (g)" %in% input$macroSelector && input$lineGraph == TRUE) {
+    satfatPlot <- satfatPlot %>% add_trace(data = df,
+                                         x = ~weekDay,
+                                         y = ~`Satuated Fat (g)`,
+                                         type = 'scatter',
+                                         mode = 'lines+markers',
+                                         name = 'Saturated Fat (g)')
+  }
+  
+  # Protien Graphs
+    proteinPlot <- plot_ly()
+  
+  if ("Protein (g)" %in% input$macroSelector && input$barGraph == TRUE) {
+    proteinPlot <- proteinPlot %>% add_trace(data = df,
+                                         x = ~weekDay,
+                                         y = ~`Protein (g)`,
+                                         type = 'bar',
+                                         name = "Protein (g)")
+  }
+  if ("Protein (g)" %in% input$macroSelector && input$lineGraph == TRUE) {
+    proteinPlot <- proteinPlot %>% add_trace(data = df,
+                                         x = ~weekDay,
+                                         y = ~`Protein (g)`,
+                                         type = 'scatter',
+                                         mode = 'lines+markers',
+                                         name = "Protein (g)")
+  }
+  
+  # Sodium Graphs
+    sodiumPlot <- plot_ly()
+  
+  if ("Sodium (mg)" %in% input$macroSelector && input$barGraph == TRUE) {
+    sodiumPlot <- sodiumPlot %>% add_trace(data = df,
+                                         x = ~weekDay,
+                                         y = ~`Sodium (mg)`,
+                                         type = 'bar',
+                                         name = "Sodium (mg)")
+    
+  }
+  if ("Sodium (mg)" %in% input$macroSelector && input$lineGraph == TRUE) {
+    sodiumPlot <- sodiumPlot %>% add_trace(data = df,
+                                         x = ~weekDay,
+                                         y = ~`Sodium (mg)`,
+                                         type = 'scatter',
+                                         mode = 'lines+markers',
+                                         name = "Sodium (mg)")
+    
+  }
+  
+  # Potassium Graph
+    potassiumPlot <- plot_ly()
+    
+  if ("Potassium (mg)" %in% input$macroSelector && input$barGraph == TRUE) {
+    potassiumPlot <- potassiumPlot %>% add_trace(data = df,
+                                         x = ~weekDay,
+                                         y = ~`Potassium (mg)`,
+                                         type = 'bar',
+                                         name = "Potassium (mg)")
+    
+  }
+  if ("Potassium (mg)" %in% input$macroSelector && input$lineGraph == TRUE) {
+    potassiumPlot <- potassiumPlot %>% add_trace(data = df,
+                                         x = ~weekDay,
+                                         y = ~`Potassium (mg)`,
+                                         type = 'scatter',
+                                         mode = 'lines+markers',
+                                         name = "Potassium (mg)")
+    
+  }
+  
+  # Carbs Plot
+    carbPlot <- plot_ly()
+  
+  if ("Carbohydrates (g)" %in% input$macroSelector && input$barGraph == TRUE) {
+    carbPlot <- carbPlot %>% add_trace(data = df,
+                                         x = ~weekDay,
+                                         y = ~`Carbohydrates (g)`,
+                                         type = 'bar',
+                                         name = "Carbohydrates (g)")
+    
+  }
+  
+  if ("Carbohydrates (g)" %in% input$macroSelector && input$lineGraph == TRUE) {
+    carbPlot <- carbPlot %>% add_trace(data = df,
+                                         x = ~weekDay,
+                                         y = ~`Carbohydrates (g)`,
+                                         type = 'scatter',
+                                         mode = 'lines+markers',
+                                         name = "Carbohydrates (g)")
+    
+  }
+  
+  # Fiber
+    fiberPlot <- plot_ly()
+
+  
+  if ("Fiber (g)" %in% input$macroSelector && input$barGraph == TRUE) {
+    fiberPlot <- fiberPlot %>% add_trace(data = df,
+                                         x = ~weekDay,
+                                         y = ~`Fiber (g)`,
+                                         type = 'bar',
+                                         name = 'Fiber (g)')
+    
+  }
+  if ("Fiber (g)" %in% input$macroSelector && input$lineGraph == TRUE) {
+    fiberPlot <- fiberPlot %>% add_trace(data = df,
+                                         x = ~weekDay,
+                                         y = ~`Fiber (g)`,
+                                         type = 'scatter',
+                                         mode = 'lines+markers',
+                                         name = 'Fiber (g)')
+    
+  }
+  
+  # Sugar Plot
+   sugarPlot <- plot_ly() 
+  
+  if ("Sugar (g)" %in% input$macroSelector && input$barGraph == TRUE) {
+    sugarPlot <- sugarPlot %>% add_trace(data = df,
+                                         x = ~weekDay,
+                                         y = ~`Sugar (g)`,
+                                         type = 'bar',
+                                         name = 'Sugar (g)')
+    
+  }
+  if ("Sugar (g)"%in% input$macroSelector && input$lineGraph == TRUE) {
+    sugarPlot <- sugarPlot %>% add_trace(data = df,
+                                         x = ~weekDay,
+                                         y = ~`Sugar (g)`,
+                                         type = 'scatter',
+                                         mode = 'lines+markers',
+                                         name = 'Sugar (g)')
+  }
+  
+  
+  plotList <- list(caloriesPlot, fatPlot, satfatPlot, proteinPlot, sodiumPlot, 
+                   potassiumPlot, carbPlot, fiberPlot, sugarPlot)
+  
+  selectedIndex <- c()
+  
+  if ("Calories" %in% input$macroSelector){
+    selectedIndex <- c(selectedIndex, 1)
+  }
+  if ("Fat (g)" %in% input$macroSelector){
+    selectedIndex <- c(selectedIndex, 2)
+  }
+  if ("Satuated Fat (g)" %in% input$macroSelector){
+    selectedIndex <- c(selectedIndex, 3)
+  }
+  if ("Protein (g)" %in% input$macroSelector){
+    selectedIndex <- c(selectedIndex, 4)
+  }
+  if ("Sodium (mg)" %in% input$macroSelector){
+    selectedIndex <- c(selectedIndex, 5)
+  }
+  if ("Potassium (mg)" %in% input$macroSelector){
+    selectedIndex <- c(selectedIndex, 6)
+  }
+  if ("Carbohydrates (g)" %in% input$macroSelector){
+    selectedIndex <- c(selectedIndex, 7)
+  }
+  if ("Fiber (g)" %in% input$macroSelector){
+    selectedIndex <- c(selectedIndex, 8)
+  }
+  if ("Sugar (g)" %in% input$macroSelector){
+    selectedIndex <- c(selectedIndex, 9)
+  }
+  print(selectedIndex)
+  filteredPlotList <- plotList[selectedIndex]
+  
+  nrowVal <- 1
+  
+  
+  if (length(selectedIndex)>2){
+    nrowVal <- 3
+  }
+  if (length(selectedIndex) == 0){
+    plot_ly()
+  } else{
+  subplot(filteredPlotList, nrows = nrowVal, titleY = TRUE)
+  }
+})
+# 
+# 
+# # observeEvent(session, c(input$rstepDOW), {
+# #   print(1)
+#   # df <- recipe_df()%>%
+#   #   mutate(id2 = as.character(id2))
+#   # print(2)
+#   # if(nrow(df()) == 0){
+#   #   inputselectList <- c()
+#   # }else {
+#   # if (input$rstepDOW == "Sun"&& length(input$rarnk_list_2) > 0){
+#   #   df <- df() %>%
+#   #     filter(id2 %in% as.character(input$rank_list_2))
+#   # } else if  (input$rstepDOW == "Mon" && length(input$rarnk_list_3) > 0){
+#   #   df <- df() %>%
+#   #     filter(id2 %in% as.character(input$rank_list_3))
+#   # }else if  (input$rstepDOW == "Tue" && length(input$rarnk_list_4) > 0){
+#   #   df <- df() %>%
+#   #     filter(id2 %in% as.character(input$rank_list_4))
+#   # }else if  (input$rstepDOW == "Wed" && length(input$rarnk_list_5) > 0){
+#   #   df <- df() %>%
+#   #     filter(id2 %in% as.character(input$rank_list_5))
+#   # }else if  (input$rstepDOW == "Thur" && length(input$rarnk_list_6) > 0){
+#   #   df <- df() %>%
+#   #     filter(id2 %in% as.character(input$rank_list_6))
+#   # }else if  (input$rstepDOW == "Fri" && length(input$rarnk_list_7) > 0){
+#   #   df <- df() %>%
+#   #     filter(id2 %in% as.character(input$rank_list_7))
+#   # }else if  (input$rstepDOW == "Sat" && length(input$rarnk_list_8) > 0){
+#   #   df <- df() %>%
+#   #     filter(id2 %in% as.character(input$rank_list_8))
+#   # } else {
+#   #   c()
+#   # }
+# #     updateSelectInput(session, "recipeSelect", choices = df()[names])
+# #
+# #
+# #
+# #   print(df())
+# #
+# #   }
+# #
+# #   })
+# #
+# # recipeSelectChoices <- eventReactive(input$rstepDOW,{
+# #
+# #   df <- recipe_df()
+# #   print(df)
+# #   print(nrow(df))
+# #   if(nrow(df) != 0){
+# #     df <- df%>%
+# #       mutate(id2 = as.character(id2))
+# #     if (input$rstepDOW == "Sun"&& length(input$rarnk_list_2) > 0){
+# #       df <- df %>%
+# #         filter(id2 %in% as.character(input$rank_list_2))
+# #     } else if  (input$rstepDOW == "Mon" && length(input$rank_list_3) > 0){
+# #       df <- df %>%
+# #         filter(id2 %in% as.character(input$rank_list_3))
+# #     }else if  (input$rstepDOW == "Tue" && length(input$rank_list_4) > 0){
+# #       df <- df %>%
+# #         filter(id2 %in% as.character(input$rank_list_4))
+# #     }else if  (input$rstepDOW == "Wed" && length(input$rank_list_5) > 0){
+# #       df <- df %>%
+# #         filter(id2 %in% as.character(input$rank_list_5))
+# #     }else if  (input$rstepDOW == "Thur" && length(input$rank_list_6) > 0){
+# #       df <- df %>%
+# #         filter(id2 %in% as.character(input$rank_list_6))
+# #     }else if  (input$rstepDOW == "Fri" && length(input$rank_list_7) > 0){
+# #       df <- df %>%
+# #         filter(id2 %in% as.character(input$rank_list_7))
+# #     }else if  (input$rstepDOW == "Sat" && length(input$rank_list_8) > 0){
+# #       df <- df %>%
+# #         filter(id2 %in% as.character(input$rank_list_8))
+# #     } else {
+# #       df <- data.frame(
+# #         id = numeric(0),
+# #         id2 = numeric(0),
+# #         name = character(0),
+# #         servings = numeric(0),
+# #         ingredients = character(0),
+# #         steps = character(0)
+# #       )
+# #     }
+# #   }
+#   # print("end")
+#   # print(df$name)
+#   # print(input$rank_list_3)
+# # })
+# 
+# #
+# # observeEvent(c(input$rstepDOW), {
+# #   updateSelectInput(session, "recipeSelect", choices = recipeSelectChoices()$name)
+# # })
+
+output$recipeSelectUI <- renderUI({
+  df <- recipe_df()
+
+  if(nrow(df) != 0){
+    df <- df%>%
+      mutate(id2 = as.character(id2))
+    if (input$rstepDOW == "Sun"&& length(input$rank_list_2) > 0){
+      df <- df %>%
+        filter(id2 %in% as.character(sub(".*\\.(\\d+)$", "\\1",input$rank_list_2)))
+    } else if  (input$rstepDOW == "Mon" && length(input$rank_list_3) > 0){
+      df <- df %>%
+        filter(id2 %in% as.character(sub(".*\\.(\\d+)$", "\\1",input$rank_list_3)))
+    }else if  (input$rstepDOW == "Tue" && length(input$rank_list_4) > 0){
+      df <- df %>%
+        filter(id2 %in% as.character(sub(".*\\.(\\d+)$", "\\1",input$rank_list_4)))
+    }else if  (input$rstepDOW == "Wed" && length(input$rank_list_5) > 0){
+      df <- df %>%
+        filter(id2 %in% as.character(sub(".*\\.(\\d+)$", "\\1",input$rank_list_5)))
+    }else if  (input$rstepDOW == "Thur" && length(input$rank_list_6) > 0){
+      df <- df %>%
+        filter(id2 %in% as.character(sub(".*\\.(\\d+)$", "\\1",input$rank_list_6)))
+    }else if  (input$rstepDOW == "Fri" && length(input$rank_list_7) > 0){
+      df <- df %>%
+        filter(id2 %in% as.character(sub(".*\\.(\\d+)$", "\\1",input$rank_list_7)))
+    }else if  (input$rstepDOW == "Sat" && length(input$rank_list_8) > 0){
+      df <- df %>%
+        filter(id2 %in% as.character(sub(".*\\.(\\d+)$", "\\1",input$rank_list_8)))
+    } else {
+      df <- data.frame(
+        id = character(0),
+        id2 = character(0),
+        name = character(0),
+        servings = character(0),
+        ingredients = character(0),
+        steps = character(0)
+      )
+    }
+  }
+  
+  choiceList <- df$name
+  selectInput("recipeSelect", "Select Recipe:", choices = choiceList)
+  
 })
 
-### Test View the Recipe DF
-output$my_table1 <- renderTable({
-  df <- Sum.macrosDf() %>%
-    mutate(weekDay = case_when(
-      ID %in% sub(".*\\.(\\d+)$", "\\1",input$rank_list_2) ~ "Sun",
-      ID %in% sub(".*\\.(\\d+)$", "\\1",input$rank_list_3) ~ "Mon",
-      ID %in% sub(".*\\.(\\d+)$", "\\1",input$rank_list_4) ~ "Tue",
-      ID %in% sub(".*\\.(\\d+)$", "\\1",input$rank_list_5) ~ "Wed",
-      ID %in% sub(".*\\.(\\d+)$", "\\1",input$rank_list_6) ~ "Thur",
-      ID %in% sub(".*\\.(\\d+)$", "\\1",input$rank_list_7) ~ "Fri",
-      ID %in% sub(".*\\.(\\d+)$", "\\1",input$rank_list_8) ~ "Sat"
-    ))
+
+output$Recipieout <- renderUI({
+  df <- recipe_df()
   print(df)
-  zeroDF <- data.frame(
-    name = rep(c(" "),7),
-    sum_calories  = rep(0, 7),
-    sum_fat = rep(0, 7),
-    sum_sat = rep(0, 7),
-    sum_proteing   = rep(0, 7),
-    sum_sodium = rep(0, 7),
-    sum_potassium = rep(0, 7),
-    sum_carbohydrates = rep(0, 7),
-    sum_fiber = rep(0, 7),
-    sum_sugar = rep(0, 7),
-    ID = rep(0, 7),  
-    weekDay = rep(c("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"), each = 1)
+  print(paste("Nrow",nrow(df)))
+  if(nrow(df) != 0){
+    df <- df%>%
+      mutate(id2 = as.character(id2))
+    if (input$rstepDOW == "Sun"&& length(input$rank_list_2) > 0){
+      df <- df %>%
+        filter(id2 %in% as.character(sub(".*\\.(\\d+)$", "\\1",input$rank_list_2)))
+    } else if  (input$rstepDOW == "Mon" && length(input$rank_list_3) > 0){
+      df <- df %>%
+        filter(id2 %in% as.character(sub(".*\\.(\\d+)$", "\\1",input$rank_list_3)))
+    }else if  (input$rstepDOW == "Tue" && length(input$rank_list_4) > 0){
+      df <- df %>%
+        filter(id2 %in% as.character(sub(".*\\.(\\d+)$", "\\1",input$rank_list_4)))
+    }else if  (input$rstepDOW == "Wed" && length(input$rank_list_5) > 0){
+      df <- df %>%
+        filter(id2 %in% as.character(sub(".*\\.(\\d+)$", "\\1",input$rank_list_5)))
+    }else if  (input$rstepDOW == "Thur" && length(input$rank_list_6) > 0){
+      df <- df %>%
+        filter(id2 %in% as.character(sub(".*\\.(\\d+)$", "\\1",input$rank_list_6)))
+    }else if  (input$rstepDOW == "Fri" && length(input$rank_list_7) > 0){
+      df <- df %>%
+        filter(id2 %in% as.character(sub(".*\\.(\\d+)$", "\\1",input$rank_list_7)))
+    }else if  (input$rstepDOW == "Sat" && length(input$rank_list_8) > 0){
+      df <- df %>%
+        filter(id2 %in% as.character(sub(".*\\.(\\d+)$", "\\1",input$rank_list_8)))
+    } else {
+      df <- data.frame(
+        id = numeric(0),
+        id2 = numeric(0),
+        name = character(0),
+        sevings = numeric(0),
+        ingredients = character(0),
+        steps = character(0)
+      )
+    }
+  df <- df %>% filter(name == input$recipeSelect)
+  ingredients <- strsplit(df$ingredients, ", ")[[1]]
+  ingredients <- paste("<ul>", paste("<li>", ingredients, "</li>", sep = ""), "</ul>", collapse = "\n")
+  HTML(paste0("<b>", toTitleCase(df$name),"</b>", "<br><br>",
+              "<b>Servings: </b>", df$sevings, "<br><br>",
+              "<b> Ingredients:</b>", ingredients, "<br>"
+  ))
+  } else{
+    HTML("  ")
+  }
+  
+ 
     
-  )
   
-  df <- rbind(zeroDF, df)
-  print(df)  
+})
+
+
+output$RecipeStep <- renderUI({
+  df <- recipe_df()
+  # print(df)
+  # print(nrow(df))
+  if(nrow(df) != 0){
+    df <- df%>%
+      mutate(id2 = as.character(id2))
+    if (input$rstepDOW == "Sun"&& length(input$rank_list_2) > 0){
+      df <- df %>%
+        filter(id2 %in% as.character(sub(".*\\.(\\d+)$", "\\1",input$rank_list_2)))
+    } else if  (input$rstepDOW == "Mon" && length(input$rank_list_3) > 0){
+      df <- df %>%
+        filter(id2 %in% as.character(sub(".*\\.(\\d+)$", "\\1",input$rank_list_3)))
+    }else if  (input$rstepDOW == "Tue" && length(input$rank_list_4) > 0){
+      df <- df %>%
+        filter(id2 %in% as.character(sub(".*\\.(\\d+)$", "\\1",input$rank_list_4)))
+    }else if  (input$rstepDOW == "Wed" && length(input$rank_list_5) > 0){
+      df <- df %>%
+        filter(id2 %in% as.character(sub(".*\\.(\\d+)$", "\\1",input$rank_list_5)))
+    }else if  (input$rstepDOW == "Thur" && length(input$rank_list_6) > 0){
+      df <- df %>%
+        filter(id2 %in% as.character(sub(".*\\.(\\d+)$", "\\1",input$rank_list_6)))
+    }else if  (input$rstepDOW == "Fri" && length(input$rank_list_7) > 0){
+      df <- df %>%
+        filter(id2 %in% as.character(sub(".*\\.(\\d+)$", "\\1",input$rank_list_7)))
+    }else if  (input$rstepDOW == "Sat" && length(input$rank_list_8) > 0){
+      df <- df %>%
+        filter(id2 %in% as.character(sub(".*\\.(\\d+)$", "\\1",input$rank_list_8)))
+    } else {
+      df <- data.frame(
+        id = numeric(0),
+        id2 = numeric(0),
+        name = character(0),
+        sevings = numeric(0),
+        ingredients = character(0),
+        steps = character(0)
+      )
+    }
+  }
+  if (nrow(df)!= 0){
+  df <- df %>% filter(name == input$recipeSelect)
+  HTML(paste0("Steps: <br> ",gsub("\r", "<br>", df$steps)))
   
-  })
-output$my_table <- renderTable({
+  } else {
+    HTML(" ")
+  }
+})
+
+
+
+
+output$piePlot <- renderPlotly({
+  df <- recipe_df()
+  # print(df)
+  # print(nrow(df))
+  if(nrow(df) != 0){
+    df <- df%>%
+      mutate(id2 = as.character(id2))
+    if (input$rstepDOW == "Sun"&& length(input$rank_list_2) > 0){
+      df <- df %>%
+        filter(id2 %in% as.character(sub(".*\\.(\\d+)$", "\\1",input$rank_list_2)))
+    } else if  (input$rstepDOW == "Mon" && length(input$rank_list_3) > 0){
+      df <- df %>%
+        filter(id2 %in% as.character(sub(".*\\.(\\d+)$", "\\1",input$rank_list_3)))
+    }else if  (input$rstepDOW == "Tue" && length(input$rank_list_4) > 0){
+      df <- df %>%
+        filter(id2 %in% as.character(sub(".*\\.(\\d+)$", "\\1",input$rank_list_4)))
+    }else if  (input$rstepDOW == "Wed" && length(input$rank_list_5) > 0){
+      df <- df %>%
+        filter(id2 %in% as.character(sub(".*\\.(\\d+)$", "\\1",input$rank_list_5)))
+    }else if  (input$rstepDOW == "Thur" && length(input$rank_list_6) > 0){
+      df <- df %>%
+        filter(id2 %in% as.character(sub(".*\\.(\\d+)$", "\\1",input$rank_list_6)))
+    }else if  (input$rstepDOW == "Fri" && length(input$rank_list_7) > 0){
+      df <- df %>%
+        filter(id2 %in% as.character(sub(".*\\.(\\d+)$", "\\1",input$rank_list_7)))
+    }else if  (input$rstepDOW == "Sat" && length(input$rank_list_8) > 0){
+      df <- df %>%
+        filter(id2 %in% as.character(sub(".*\\.(\\d+)$", "\\1",input$rank_list_8)))
+    } else {
+      df <- data.frame(
+        id = numeric(0),
+        id2 = numeric(0),
+        name = character(0),
+        sevings = numeric(0),
+        ingredients = character(0),
+        steps = character(0)
+      )
+    }
+  }
+  if (nrow(df)!= 0){
+    df <- df %>% filter(name == input$recipeSelect)
+    
+    id_num <- df$id
+    print(id_num)
+    nutDF <- macrosDf() %>% filter(RID == id_num)
+    nutDF$name <- toTitleCase(nutDF$name)
+    colnames(nutDF) <- c("name", "Calories", 'Ignore', "Fat (g)", "Satuated Fat (g)",
+                         "Protein (g)", "Sodium (mg)", "Potassium (mg)",
+                         "Carbohydrates (g)", "Fiber (g)", "Sugar (g)", "RID", "ID")
+    nutDF <- nutDF %>% select("name", input$macroSelector2)
+    
+    if(nrow(nutDF > 5)){
+      sortNut <- nutDF[order(-nutDF[,2]), ]
+      top5 <- head(sortNut,5)
+      remaining <- sortNut[-(1:5), ]
+      
+      nutDF <- rbind(top5, c("Other", sum(remaining[, 2])))
+      plot_ly(nutDF, labels = ~name, values =~get(input$macroSelector2), type = 'pie')
+      
+  } 
+  }
+
+})
+
+
+output$macroDT <- renderDT({
+  df <- recipe_df()
+  # print(df)
+  # print(nrow(df))
+  if(nrow(df) != 0){
+    df <- df%>%
+      mutate(id2 = as.character(id2))
+    if (input$rstepDOW == "Sun"&& length(input$rank_list_2) > 0){
+      df <- df %>%
+        filter(id2 %in% as.character(sub(".*\\.(\\d+)$", "\\1",input$rank_list_2)))
+    } else if  (input$rstepDOW == "Mon" && length(input$rank_list_3) > 0){
+      df <- df %>%
+        filter(id2 %in% as.character(sub(".*\\.(\\d+)$", "\\1",input$rank_list_3)))
+    }else if  (input$rstepDOW == "Tue" && length(input$rank_list_4) > 0){
+      df <- df %>%
+        filter(id2 %in% as.character(sub(".*\\.(\\d+)$", "\\1",input$rank_list_4)))
+    }else if  (input$rstepDOW == "Wed" && length(input$rank_list_5) > 0){
+      df <- df %>%
+        filter(id2 %in% as.character(sub(".*\\.(\\d+)$", "\\1",input$rank_list_5)))
+    }else if  (input$rstepDOW == "Thur" && length(input$rank_list_6) > 0){
+      df <- df %>%
+        filter(id2 %in% as.character(sub(".*\\.(\\d+)$", "\\1",input$rank_list_6)))
+    }else if  (input$rstepDOW == "Fri" && length(input$rank_list_7) > 0){
+      df <- df %>%
+        filter(id2 %in% as.character(sub(".*\\.(\\d+)$", "\\1",input$rank_list_7)))
+    }else if  (input$rstepDOW == "Sat" && length(input$rank_list_8) > 0){
+      df <- df %>%
+        filter(id2 %in% as.character(sub(".*\\.(\\d+)$", "\\1",input$rank_list_8)))
+    } else {
+      df <- data.frame(
+        id = numeric(0),
+        id2 = numeric(0),
+        name = character(0),
+        sevings = numeric(0),
+        ingredients = character(0),
+        steps = character(0)
+      )
+    }
+  }
+  if (nrow(df)!= 0){
+    df <- df %>% filter(name == input$recipeSelect)
+    id_num <- df$id
+    print(id_num)
+    nutDF <- macrosDf() %>% filter(RID == id_num)
+    nutDF$name <- toTitleCase(nutDF$name)
+    colnames(nutDF) <- c("name", "Calories", 'Ignore', "Fat (g)", "Satuated Fat (g)",
+                         "Protein (g)", "Sodium (mg)", "Potassium (mg)",
+                         "Carbohydrates (g)", "Fiber (g)", "Sugar (g)", "RID", "ID")
+    datatable(nutDF %>% select("name", "Calories","Fat (g)", "Satuated Fat (g)",
+                               "Protein (g)", "Sodium (mg)", "Potassium (mg)",
+                               "Carbohydrates (g)", "Fiber (g)", "Sugar (g)"))
+  } 
+
+})
+
+
+output$my_tab <- renderTable({
   recipe_df()
 })
-###
+
+
+
 
 
 #### Reset Shiny App
